@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
@@ -32,7 +33,8 @@ fun TimetableScreen(
     vm: AppViewModel,
     onAddCourse: () -> Unit,
     onEditCourse: (Long) -> Unit,
-    onOpenMemo: (String) -> Unit
+    onOpenMemo: (String) -> Unit,
+    onScanImport: () -> Unit
 ) {
     val state by vm.uiState.collectAsState()
     var selectedSession by remember { mutableStateOf<ClassSession?>(null) }
@@ -49,6 +51,9 @@ fun TimetableScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onScanImport) {
+                        Icon(Icons.Filled.CameraAlt, "扫描导入")
+                    }
                     IconButton(onClick = { vm.nextWeek() }) {
                         Icon(Icons.Filled.ChevronRight, "下一周")
                     }
