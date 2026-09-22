@@ -15,7 +15,9 @@ data class GlobalSettings(
     val totalWeeks: Int = 20,
     val defaultReminderType: ReminderType = ReminderType.NOTIFICATION,
     val defaultAdvance: Int = 10,
-    val defaultVibrateOnly: Boolean = false
+    val defaultVibrateOnly: Boolean = false,
+    val myClasses: List<String> = emptyList(),   // 预设执教班级
+    val mySubjects: List<String> = emptyList()   // 预设执教学科
 )
 
 fun defaultMondayEpoch(): Long {
@@ -31,6 +33,8 @@ class SettingsStore(private val context: Context) {
         val DEF_TYPE = stringPreferencesKey("def_type")
         val DEF_ADVANCE = intPreferencesKey("def_advance")
         val DEF_VIBRATE = booleanPreferencesKey("def_vibrate")
+        val MY_CLASSES = stringSetPreferencesKey("my_classes")
+        val MY_SUBJECTS = stringSetPreferencesKey("my_subjects")
     }
 
     val flow: Flow<GlobalSettings> = context.dataStore.data.map { p ->
@@ -41,7 +45,9 @@ class SettingsStore(private val context: Context) {
                 runCatching { ReminderType.valueOf(it) }.getOrNull()
             } ?: ReminderType.NOTIFICATION,
             defaultAdvance = p[K.DEF_ADVANCE] ?: 10,
-            defaultVibrateOnly = p[K.DEF_VIBRATE] ?: false
+            defaultVibrateOnly = p[K.DEF_VIBRATE] ?: false,
+            myClasses = p[K.MY_CLASSES]?.toList()?.sorted() ?: emptyList(),
+            mySubjects = p[K.MY_SUBJECTS]?.toList()?.sorted() ?: emptyList()
         )
     }
 
@@ -52,6 +58,8 @@ class SettingsStore(private val context: Context) {
             p[K.DEF_TYPE] = s.defaultReminderType.name
             p[K.DEF_ADVANCE] = s.defaultAdvance
             p[K.DEF_VIBRATE] = s.defaultVibrateOnly
+            p[K.MY_CLASSES] = s.myClasses.toSet()
+            p[K.MY_SUBJECTS] = s.mySubjects.toSet()
         }
     }
 }
