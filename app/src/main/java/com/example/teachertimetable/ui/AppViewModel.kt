@@ -113,7 +113,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         settingsStore.update(s)
         rescheduleInternal()
     }
-
+    // 批量保存（OCR 导入用）
+    fun saveCourses(courses: List<CourseEntity>, onDone: () -> Unit = {}) = viewModelScope.launch {
+        courses.forEach { repo.courseDao.upsert(it) }
+        rescheduleInternal()
+        onDone()
+    }
+    
     fun reschedule() = viewModelScope.launch { rescheduleInternal() }
 
     private suspend fun rescheduleInternal() {
