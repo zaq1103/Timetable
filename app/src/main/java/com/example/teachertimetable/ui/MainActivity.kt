@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.EditNote
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,9 +28,11 @@ import com.example.teachertimetable.ui.course.EditCourseScreen
 import com.example.teachertimetable.ui.memo.EditMemoScreen
 import com.example.teachertimetable.ui.memo.ImageEditorScreen
 import com.example.teachertimetable.ui.memo.MemoScreen
+import com.example.teachertimetable.ui.ocr.OcrImportScreen
 import com.example.teachertimetable.ui.settings.SettingsScreen
 import com.example.teachertimetable.ui.theme.TeacherTimetableTheme
 import com.example.teachertimetable.ui.timetable.TimetableScreen
+import com.example.teachertimetable.ui.timetable.WeekGridScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -68,8 +71,10 @@ fun AppRoot() {
     val nav = rememberNavController()
     val vm: AppViewModel = viewModel()
 
+    // 底部导航：课表 / 周视图 / 备忘 / 设置
     val tabs = listOf(
         Triple("timetable", "课表", Icons.Filled.DateRange),
+        Triple("weekgrid", "周视图", Icons.Filled.GridView),
         Triple("memo", "备忘", Icons.Filled.EditNote),
         Triple("settings", "设置", Icons.Filled.Settings)
     )
@@ -106,31 +111,48 @@ fun AppRoot() {
             startDestination = "timetable",
             modifier = Modifier.padding(padding)
         ) {
+            // ---------- 课表（按天） ----------
             composable("timetable") {
                 TimetableScreen(
                     vm = vm,
                     onAddCourse = { nav.navigate("course?id=-1") },
-                    onEditCourse = { id -> nav.navigate("course?id=" + id) },
+                    onEditCourse = { id -> nav.navigate("course?id=$id") },
                     onOpenMemo = { cls ->
                         nav.navigate("memoEdit?className=" + Uri.encode(cls))
-                    }
+                    },
+                    onScanImport = { nav.navigate("ocr") }
                 )
             }
 
+            // ---------- 周视图（大课表） ----------
+            composable("weekgrid") {
+                WeekGridScreen(vm = vm) { session ->
+                    nav.navigate("course?id=${session.courseId}")
+                }
+            }
+
+            // ---------- OCR 扫描导入 ----------
+            composable("ocr") {
+                OcrImportScreen(vm = vm) { nav.popBackStack() }
+            }
+
+            // ---------- 备忘录列表 ----------
             composable("memo") {
                 MemoScreen(
                     vm = vm,
-                    onEditMemo = { id -> nav.navigate("memoEdit?id=" + id) },
+                    onEditMemo = { id -> nav.navigate("memoEdit?id=$id") },
                     onNewClassMemo = { cls ->
                         nav.navigate("memoEdit?className=" + Uri.encode(cls))
                     }
                 )
             }
 
+            // ---------- 设置 ----------
             composable("settings") {
                 SettingsScreen(vm = vm)
             }
 
+            // ---------- 课程编辑 / 调课 ----------
             composable(
                 "course?id={id}",
                 arguments = listOf(navArgument("id") {
@@ -145,6 +167,7 @@ fun AppRoot() {
                 )
             }
 
+            // ---------- 备忘录编辑 ----------
             composable(
                 "memoEdit?id={id}&className={cls}&courseId={cid}&week={w}&day={d}",
                 arguments = listOf(
@@ -171,6 +194,7 @@ fun AppRoot() {
                 )
             }
 
+            // ---------- 图片编辑 ----------
             composable(
                 "imageEdit?path={path}",
                 arguments = listOf(navArgument("path") { type = NavType.StringType })
